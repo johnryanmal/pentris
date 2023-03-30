@@ -12,12 +12,18 @@
 var keyMap = [37,39,65,68,40,32,38,80];
 
 
+window.addEventListener('keydown', function(event) {
+    if ([32,37,38,39,40].indexOf(event.keyCode) !== -1) {
+        event.preventDefault();
+    }
+}, false);
+
 
 var keys = [];
-keyPressed = function() {
+function keyPressed() {
     keys[keyCode] = true;
 };
-keyReleased = function() {
+function keyReleased() {
     keys[keyCode] = false;
 };
 
