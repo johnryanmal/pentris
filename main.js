@@ -1796,7 +1796,8 @@ var ARR = 3;
 var place = false;
 var next = false;
 
-var paused = true;
+var begin = true;
+var paused = false;
 var end = false;
 
 
@@ -1820,7 +1821,7 @@ var drawPlay = function(x, y, s) {
     push();
     translate(x, y);
     scale(s, s);
-    translate(40-w/2, -h/2);
+    translate(28-w/2, -h/2);
 
     // Code generated from SVG using svg2p5 - https://svg2p5.com
     strokeCap(PROJECT);
@@ -1836,6 +1837,51 @@ var drawPlay = function(x, y, s) {
     bezierVertex(375.3,288.3,384,272.8,384,256);
     bezierVertex(384,239.2,375.3,223.8,361,215);
     vertex(73,39);
+    endShape();
+
+    pop();
+};
+
+var drawPause = function(x, y, s) {
+    // Icon SVG by fontawesome
+    // ---
+    // Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com
+    // License - https://fontawesome.com/license (Commercial License)
+    // Copyright 2023 Fonticons, Inc.
+    // ---
+
+    var w = 320;
+    var h = 512;
+
+    push();
+    translate(x, y);
+    scale(s, s);
+    translate(-w/2, -h/2);
+
+    // Code generated from SVG using svg2p5 - https://svg2p5.com
+    strokeCap(PROJECT);
+    strokeJoin(MITER);
+    beginShape();
+    vertex(48,64);
+    bezierVertex(21.5,64,0,85.5,0,112);
+    vertex(0,400);
+    bezierVertex(0,426.5,21.5,448,48,448);
+    vertex(80,448);
+    bezierVertex(106.5,448,128,426.5,128,400);
+    vertex(128,112);
+    bezierVertex(128,85.5,106.5,64,80,64);
+    vertex(48,64);
+    endShape();
+    beginShape();
+    vertex(240,64);
+    bezierVertex(213.5,64,192,85.5,192,112);
+    vertex(192,400);
+    bezierVertex(192,426.5,213.5,448,240,448);
+    vertex(272,448);
+    bezierVertex(298.5,448,320,426.5,320,400);
+    vertex(320,112);
+    bezierVertex(320,85.5,298.5,64,272,64);
+    vertex(240,64);
     endShape();
 
     pop();
@@ -1858,8 +1904,8 @@ var drawArrowRotateLeft = function(x, y, s) {
     translate(-w/2, -h/2);
 
     // Code generated from SVG using svg2p5 - https://svg2p5.com
-    strokeCap(PROJECT)
-    strokeJoin(MITER)
+    strokeCap(PROJECT);
+    strokeJoin(MITER);
     beginShape();
     vertex(125.7,160);
     vertex(176,160);
@@ -1886,7 +1932,7 @@ var drawArrowRotateLeft = function(x, y, s) {
     pop();
 };
 
-var hover;
+var hover = false;
 
 draw = function() {
 
@@ -1906,15 +1952,14 @@ draw = function() {
     }
     keysPrev = keys.slice();
 
-    if (keysPressed[7]) {
-        paused = !paused;
-    }
-
-    var stopped = paused || end;
+    var stopped = begin || paused || end;
     if (!stopped) {
-        cursor(ARROW)
         background(8);
         timer += 1;
+
+        if (keysReleased[7]) {
+            paused = true;
+        }
 
         if (keysPressed[0]||(keysTimer[0]>DAS&&(keysTimer[0]-DAS)%ARR===0)) {
             keysTimer[1] = 0;
@@ -2049,49 +2094,80 @@ draw = function() {
     }
 
     if (stopped) {
-        var drawIcon;
-        var iconRadius;
-
-        if (end) {
-            drawIcon = drawArrowRotateLeft;
-            iconRadius = 320;
-        } else if (paused) {
-            drawIcon = drawPlay;
-            iconRadius = 256;
-        }
-
-        var iconColor;
-        var iconScale;
-        if (hover || keysTimer[8] > 0) {
-            iconColor = color(255, 255, 255, 192);
-            iconScale = 0.8;
-            cursor(HAND);
-        } else {
-            iconColor = color(255, 255, 255, 128);
-            iconScale = 0.7;
-            cursor(ARROW);
-        }
-        hover = inCircle(mouseX, mouseY, width/2, height/2, iconRadius*iconScale);
-
         background(8, 8, 8, 128);
-        noStroke();
-        fill(iconColor);
-        //circle(width/2, height/2, 2*iconRadius*iconScale);
-        drawIcon(width/2, height/2, iconScale);
 
+        var PLAY = 1;
+        var PAUSE = 2;
+        var ARROW_ROTATE_LEFT = 3;
 
-        if ((hover && mouseTapped) || keysReleased[8]) {
-            if (end) {
-                end = false;
-                board = new2DArray(bHeight+above,bWidth,0);
-                bag = randIntNoRep(blocks.length);
-                cp = blocks[bag.shift()].get();
-                queue = bag.splice(0,queueLength);
-                hold = null;
-                place = false;
-                next = false;
+        var iconHighlight = hover || keysDown[8] || (paused && keysDown[7]);
+
+        var icon;
+        if (begin) {
+            icon = PLAY;
+        } else if (end) {
+            icon = ARROW_ROTATE_LEFT;
+        } else if (paused) {
+            icon = PAUSE;
+        }
+
+        if (icon) {
+
+            var drawIcon;
+            var iconRadius;
+            switch(icon) {
+                case PLAY:
+                    drawIcon = drawPlay;
+                    iconRadius = 256;
+                    break;
+                case PAUSE:
+                    drawIcon = drawPause;
+                    iconRadius = 240;
+                    break;
+                case ARROW_ROTATE_LEFT:
+                    drawIcon = drawArrowRotateLeft;
+                    iconRadius = 320;
+                    break;
             }
-            paused = false;
+
+            var iconColor;
+            var iconScale;
+            if (iconHighlight) {
+                iconColor = color(255, 255, 255, 192);
+                iconScale = 0.8;
+            } else {
+                iconColor = color(255, 255, 255, 128);
+                iconScale = 0.7;
+            }
+
+            hover = inCircle(mouseX, mouseY, width/2, height/2, iconRadius*iconScale);
+            if (hover) {
+                cursor(HAND);
+            } else {
+                cursor(ARROW);
+            }
+
+            noStroke();
+            fill(iconColor);
+            //circle(width/2, height/2, 2*iconRadius*iconScale);
+            drawIcon(width/2, height/2, iconScale);
+
+            if ((hover && mouseTapped) || keysReleased[8] || (paused && keysReleased[7])) {
+                if (end) {
+                    end = false;
+                    board = new2DArray(bHeight+above,bWidth,0);
+                    bag = randIntNoRep(blocks.length);
+                    cp = blocks[bag.shift()].get();
+                    queue = bag.splice(0,queueLength);
+                    hold = null;
+                    place = false;
+                    next = false;
+                }
+                begin = false;
+                paused = false;
+                hover = false;
+                cursor(ARROW);
+            }
         }
     }
 
