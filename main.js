@@ -8,8 +8,9 @@
  * 5 - Hard Drop (Space)
  * 6 - Hold (Up Arrow)
  * 7 - Pause (P)
+ * 8 - Continue (Enter)
  */
-var keyMap = [37,39,65,68,40,32,38,80];
+var keyMap = [37,39,65,68,40,32,38,80,13];
 
 
 window.addEventListener('keydown', function(event) {
@@ -26,6 +27,11 @@ function keyPressed() {
 function keyReleased() {
     keys[keyCode] = false;
 };
+
+var mouseTapped = false;
+function mousePressed() {
+    mouseTapped = true;
+}
 
 var validObject = function(input) {
     if (Object.prototype.toString.call(input) === '[object Object]') {
@@ -51,16 +57,16 @@ var new1DArray = function(maxLength,fillVal) {
 var new2DArray = function(yMax,xMax,fillVal) {
     var newArray = [];
     var insideArray = new1DArray(xMax,fillVal);
-    
+
     for (var i = 0; i < yMax; i++) {
         newArray[i] = insideArray;
     }
-    
+
     return newArray;
 };
 var copyDimensionalArray = function(array) {
     var newArray = [];
-    
+
     for(var i = 0; i < array.length; i++) {
         if (array[i] !== null && validObject(array[0])) {
             array[i] = copyDimensionalArray(array[0]);
@@ -68,7 +74,7 @@ var copyDimensionalArray = function(array) {
             newArray[i] = array[i].slice();
         }
     }
-    
+
     return newArray;
 };
 
@@ -80,7 +86,7 @@ var randInt = function (min,max) {
 var shuffleArray = function (array) {
     for (var i = array.length-1; i >= 0; i--) {
         var rndIndex = randInt(0,i);
-        
+
         var temporaryVal = array[i];
         array[i] = array[rndIndex];
         array[rndIndex] = temporaryVal;
@@ -97,15 +103,15 @@ var randIntNoRep = function (maxLength) {
 
 var drawMatrix = function(Xmin,Xmax,Ymin,Ymax,colorData,matrixData) {
     rectMode(CORNER);
-    
+
     var VerticalPxls = matrixData.length;
     for (var counterY = 0; counterY < VerticalPxls; counterY++) {
-        
+
         var HorizontalPxls = matrixData[counterY].length;
         for (var counterX = 0; counterX < HorizontalPxls; counterX++) {
-            
+
             fill(colorData[matrixData[counterY][counterX]]);
-            
+
             var pxlX = map(counterX,0,HorizontalPxls,Xmin,Xmax);
             var pxlY = map(counterY,0,VerticalPxls,Ymin,Ymax);
             var pxlWidth = (Xmax - Xmin) / HorizontalPxls;
@@ -120,7 +126,7 @@ var Polymino = function(config) {
     this.blockData = config.Block;
     this.offsetData = config.Offsets;
     this.colorIndex = config.ColorIndex;
-    
+
     this.spawn = config.Spawn;
     this.x = this.spawn.x;
     this.y = this.spawn.y;
@@ -130,7 +136,7 @@ Polymino.prototype.get = function() {
     return new Polymino({
         Spawn: this.spawn,
         ColorIndex: this.colorIndex,
-        
+
         Block: this.blockData,
         Offsets: this.offsetData
     });
@@ -140,19 +146,19 @@ Polymino.prototype.getBlock = function() {
 };
 Polymino.prototype.getTestData = function(toState) {
     var difference = [];
-    
+
     for (var i = 0; i < this.offsetData[0].length; i++) {
         difference[i] = [
             this.offsetData[this.state][i][0] - this.offsetData[toState][i][0],
             this.offsetData[this.state][i][1] - this.offsetData[toState][i][1]
         ];
     }
-    
+
     return difference;
 };
 Polymino.prototype.testPos = function(relX,relY,state,board) {
     var block = this.blockData[state];
-    
+
     for (var i = 0; i < block.length; i++) {
         for (var j = 0; j < block[i].length; j++) {
             if (block[i][j] === 1) {
@@ -172,7 +178,7 @@ Polymino.prototype.testPos = function(relX,relY,state,board) {
 };
 Polymino.prototype.rotate = function(toState,board) {
     var tests = this.getTestData(toState);
-    
+
     for (var i = 0; i < tests.length; i++) {
         var tx = tests[i][0];
         var ty = tests[i][1];
@@ -196,7 +202,7 @@ Polymino.prototype.move = function(relX,relY,board) {
 Polymino.prototype.place = function(board) {
     var block = this.getBlock();
     var newBoard = copyDimensionalArray(board);
-    
+
     for (var i = 0; i < block.length; i++) {
         for (var j = 0; j < block[i].length; j++) {
             if (block[i][j] === 1) {
@@ -204,13 +210,13 @@ Polymino.prototype.place = function(board) {
             }
         }
     }
-    
+
     return newBoard;
 };
 Polymino.prototype.lineClear = function(board) {
     var block = this.getBlock();
     var newBoard = copyDimensionalArray(board);
-    
+
     var lines = [];
     for (var i = 0; i < block.length; i++) {
         var selector = 0;
@@ -221,7 +227,7 @@ Polymino.prototype.lineClear = function(board) {
         } while (j < block[i].length && selector === 0);
         lines.push(selector);
     }
-    
+
     for (var i = 0; i < lines.length; i++) {
         if (lines[i] === 1) {
             var j = 0;
@@ -242,47 +248,48 @@ var canvasPadding = 40;
 var canvasSize;
 
 function setup() {
-  canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
-  var canvas = createCanvas(canvasSize, canvasSize);
-  canvas.parent('sketch-wrapper');
-
-  window.addEventListener('resize', function() {
+    frameRate(60);
     canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
-    resizeCanvas(canvasSize, canvasSize);
-  }, true);
+    var canvas = createCanvas(canvasSize, canvasSize);
+    canvas.parent('sketch-wrapper');
 
-  blockColors = [
-      color(32),              //  0: Blank - Grey
-      color(64),              //  1: Ghost - Light Grey
-      
-      color(128,255,255),     //  2: I - Light Cyan
-      color(64,255,255),      //  3: Cyan
-      
-      color(255,224,128),     //  4: U - Light Yellow
-      color(255,192,64),      //  5: V - Yellow
-      color(255,160,32),      //  6: W - Dark Yellow
-      
-      color(255,128,255),     //  7: Y - Light Purple
-      color(255,64,255),      //  8: T - Purple
-      color(128,32,128),      //  9: K - Dark Purple
-      color(64,16,64),         // 10: X - Darkest Purple
-      
-      color(255,160,128),     // 11: L - Light Orange
-      color(255,128,64),      // 12: Z - Orange
-      color(128,64,32),       // 13: R - Dark Orange
-      
-      color(128,128,255),     // 14: J - Light Blue
-      color(64,64,255),       // 15: S - Blue
-      color(32,32,128),       // 16: F - Dark Blue
-      
-      color(128,255,128),     // 17: Q - Light Green
-      color(64,255,64),       // 18: _ - Green
-      color(32,128,32),       // 19: N - Dark Green
-      
-      color(255,128,128),     // 20: P - Light Red
-      color(255,64,64),       // 21: _ - Red
-      color(128,32,32)        // 22: H - Dark Red
-  ];
+    window.addEventListener('resize', function() {
+        canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
+        resizeCanvas(canvasSize, canvasSize);
+    }, true);
+
+    blockColors = [
+        color(32),              //  0: Blank - Grey
+        color(64),              //  1: Ghost - Light Grey
+
+        color(128,255,255),     //  2: I - Light Cyan
+        color(64,255,255),      //  3: Cyan
+
+        color(255,224,128),     //  4: U - Light Yellow
+        color(255,192,64),      //  5: V - Yellow
+        color(255,160,32),      //  6: W - Dark Yellow
+
+        color(255,128,255),     //  7: Y - Light Purple
+        color(255,64,255),      //  8: T - Purple
+        color(128,32,128),      //  9: K - Dark Purple
+        color(64,16,64),         // 10: X - Darkest Purple
+
+        color(255,160,128),     // 11: L - Light Orange
+        color(255,128,64),      // 12: Z - Orange
+        color(128,64,32),       // 13: R - Dark Orange
+
+        color(128,128,255),     // 14: J - Light Blue
+        color(64,64,255),       // 15: S - Blue
+        color(32,32,128),       // 16: F - Dark Blue
+
+        color(128,255,128),     // 17: Q - Light Green
+        color(64,255,64),       // 18: _ - Green
+        color(32,128,32),       // 19: N - Dark Green
+
+        color(255,128,128),     // 20: P - Light Red
+        color(255,64,64),       // 21: _ - Red
+        color(128,32,32)        // 22: H - Dark Red
+    ];
 };
 
 /*
@@ -321,7 +328,7 @@ var tetris = [
                 [0,0],
             ]
         ],
-        
+
         ColorIndex: 5
     }),
     new Polymino({
@@ -378,7 +385,7 @@ var tetris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 12
     }),
     new Polymino({
@@ -435,7 +442,7 @@ var tetris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 15
     }),
     new Polymino({
@@ -492,7 +499,7 @@ var tetris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 8
     }),
     new Polymino({
@@ -549,7 +556,7 @@ var tetris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 18
     }),
     new Polymino({
@@ -606,7 +613,7 @@ var tetris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 21
     }),
     new Polymino({
@@ -671,7 +678,7 @@ var tetris = [
                 [0,2]
             ]
         ],
-        
+
         ColorIndex: 3
     })
 ];
@@ -740,7 +747,7 @@ var pentris = [
                 [2,-2]
             ]
         ],
-        
+
         ColorIndex: 2
     }),
     new Polymino({
@@ -801,7 +808,7 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 14
     }),
     new Polymino({
@@ -862,10 +869,10 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 11
     }),
-    
+
     new Polymino({
         Spawn: coords(4,0),
         Block: [
@@ -924,7 +931,7 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 22
     }),
     new Polymino({
@@ -985,10 +992,10 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 19
     }),
-    
+
     new Polymino({
         Spawn: coords(4,1),
         Block: [
@@ -1043,7 +1050,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 4
     }),
     new Polymino({
@@ -1100,7 +1107,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 5
     }),
     new Polymino({
@@ -1157,10 +1164,10 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 6
     }),
-    
+
     new Polymino({
         Spawn: coords(4,1),
         Block: [
@@ -1215,7 +1222,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 17
     }),
     new Polymino({
@@ -1272,7 +1279,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 20
     }),
     new Polymino({
@@ -1329,7 +1336,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 16
     }),
     new Polymino({
@@ -1386,10 +1393,10 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 13
     }),
-    
+
     new Polymino({
         Spawn: coords(4,0),
         Block: [
@@ -1444,7 +1451,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 15
     }),
     new Polymino({
@@ -1501,10 +1508,10 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 12
     }),
-    
+
     new Polymino({
         Spawn: coords(4,0),
         Block: [
@@ -1559,7 +1566,7 @@ var pentris = [
                 [-1,2]
             ]
         ],
-        
+
         ColorIndex: 8
     }),
     new Polymino({
@@ -1620,7 +1627,7 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 7
     }),
     new Polymino({
@@ -1681,7 +1688,7 @@ var pentris = [
                 [1,-2]
             ]
         ],
-        
+
         ColorIndex: 9
     }),
     new Polymino({
@@ -1722,7 +1729,7 @@ var pentris = [
                 [0,0]
             ]
         ],
-        
+
         ColorIndex: 10
     }),
 ];
@@ -1774,9 +1781,10 @@ var canHold = true;
 var cdTimer = 0;
 
 var keysPrev = [];
+var keysDown = [];
 var keysPressed = [];
+var keysReleased = [];
 var keysTimer = [];
-keysTimer.fill(0);
 
 var softDropTime = 2;
 var dropTime = 60;
@@ -1788,31 +1796,128 @@ var ARR = 3;
 var place = false;
 var next = false;
 
-var paused = false;
+var paused = true;
 var end = false;
 
+
+var inCircle = function(x, y, cx, cy, r) {
+    var dx = Math.abs(cx - x);
+    var dy = Math.abs(cy - y);
+    return dx*dx + dy*dy < r*r;
+};
+
+var drawPlay = function(x, y, s) {
+    // Icon SVG by fontawesome
+    // ---
+    // Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com
+    // License - https://fontawesome.com/license (Commercial License)
+    // Copyright 2023 Fonticons, Inc.
+    // ---
+
+    var w = 384;
+    var h = 512;
+
+    push();
+    translate(x, y);
+    scale(s, s);
+    translate(40-w/2, -h/2);
+
+    // Code generated from SVG using svg2p5 - https://svg2p5.com
+    strokeCap(PROJECT);
+    strokeJoin(MITER);
+    beginShape();
+    vertex(73,39);
+    bezierVertex(58.2,29.9,39.6,29.6,24.5,38.1);
+    bezierVertex(9.399999999999999,46.6,0,62.6,0,80);
+    vertex(0,432);
+    bezierVertex(0,449.4,9.4,465.4,24.5,473.9);
+    bezierVertex(39.6,482.4,58.2,482,73,473);
+    vertex(361,297);
+    bezierVertex(375.3,288.3,384,272.8,384,256);
+    bezierVertex(384,239.2,375.3,223.8,361,215);
+    vertex(73,39);
+    endShape();
+
+    pop();
+};
+
+var drawArrowRotateLeft = function(x, y, s) {
+    // Icon SVG by fontawesome
+    // ---
+    // Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com
+    // License - https://fontawesome.com/license (Commercial License)
+    // Copyright 2023 Fonticons, Inc.
+    // ---
+
+    var w = 512;
+    var h = 512;
+
+    push();
+    translate(x, y);
+    scale(s, s);
+    translate(-w/2, -h/2);
+
+    // Code generated from SVG using svg2p5 - https://svg2p5.com
+    strokeCap(PROJECT)
+    strokeJoin(MITER)
+    beginShape();
+    vertex(125.7,160);
+    vertex(176,160);
+    bezierVertex(193.7,160,208,174.3,208,192);
+    bezierVertex(208,209.7,193.7,224,176,224);
+    vertex(48,224);
+    bezierVertex(30.3,224,16,209.7,16,192);
+    vertex(16,64);
+    bezierVertex(16,46.3,30.3,32,48,32);
+    bezierVertex(65.7,32,80,46.3,80,64);
+    vertex(80,115.2);
+    vertex(97.6,97.6);
+    bezierVertex(185.1,10.099999999999994,326.9,10.099999999999994,414.4,97.6);
+    bezierVertex(501.9,185.1,501.9,326.9,414.4,414.4);
+    bezierVertex(326.9,501.9,185.09999999999997,501.9,97.59999999999997,414.4);
+    bezierVertex(85.09999999999997,401.9,85.09999999999997,381.59999999999997,97.59999999999997,369.09999999999997);
+    bezierVertex(110.09999999999997,356.59999999999997,130.39999999999998,356.59999999999997,142.89999999999998,369.09999999999997);
+    bezierVertex(205.39999999999998,431.59999999999997,306.7,431.59999999999997,369.2,369.09999999999997);
+    bezierVertex(431.7,306.59999999999997,431.7,205.29999999999995,369.2,142.79999999999995);
+    bezierVertex(306.7,80.29999999999995,205.39999999999998,80.29999999999995,142.89999999999998,142.79999999999995);
+    vertex(125.7,160);
+    endShape();
+
+    pop();
+};
+
+var hover;
+
 draw = function() {
-    
-    for (var i = 0; i < keys.length; i++) {
-        keysPressed[i] = !keysPrev[i]&&keys[i];
-        if (keys[i]) {
+
+    for (var i = 0; i < keyMap.length; i++) {
+        var key = keyMap[i];
+        var keyDown = keys[key];
+        var keyDownPrev = keysPrev[key];
+
+        keysDown[i] = keyDown;
+        keysPressed[i] = !keyDownPrev&&keyDown;
+        keysReleased[i] = keyDownPrev&&!keyDown;
+        if (keys[key]) {
             keysTimer[i] +=1;
         } else {
             keysTimer[i] = 0;
         }
     }
     keysPrev = keys.slice();
-    
-    if (keysPressed[keyMap[7]]) {
+
+    if (keysPressed[7]) {
         paused = !paused;
     }
-    
-    if (!(paused||end)) {
+
+    var stopped = paused || end;
+    if (!stopped) {
+        cursor(ARROW)
         background(8);
         timer += 1;
-        
-        if (keysPressed[keyMap[0]]||(keysTimer[keyMap[0]]>DAS&&(keysTimer[keyMap[0]]-DAS)%ARR===0)) {
-            keysTimer[[keyMap[1]]] = 0;
+
+        if (keysPressed[0]||(keysTimer[0]>DAS&&(keysTimer[0]-DAS)%ARR===0)) {
+            keysTimer[1] = 0;
             if (cp.move(-1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
@@ -1820,8 +1925,8 @@ draw = function() {
                 }
             }
         }
-        if (keysPressed[keyMap[1]]||(keysTimer[keyMap[1]]>DAS&&(keysTimer[keyMap[1]]-DAS)%ARR===0)) {
-            keysTimer[keyMap[0]] = 0;
+        if (keysPressed[1]||(keysTimer[1]>DAS&&(keysTimer[1]-DAS)%ARR===0)) {
+            keysTimer[0] = 0;
             if (cp.move(1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
@@ -1829,27 +1934,27 @@ draw = function() {
                 }
             }
         }
-        if (keysPressed[keyMap[2]]) {
+        if (keysPressed[2]) {
             if (cp.rotate((cp.state+3)%4,board)) {
                 lockDelayTimer = 0;
             }
         }
-        if (keysPressed[keyMap[3]]) {
+        if (keysPressed[3]) {
             if(cp.rotate((cp.state+1)%4,board)) {
                 lockDelayTimer = 0;
             }
         }
-        if (keys[keyMap[4]] && keysTimer[keyMap[4]]>=softDropTime) {
+        if (keysDown[4] && keysTimer[4]>=softDropTime) {
             if (cp.move(0,-1,board)) {
                 keysTimer[40] = 0;
                 lockDelayTimer = 0;
             }
         }
-        if (keysPressed[keyMap[5]]) {
+        if (keysPressed[5]) {
             while (cp.move(0,-1,board)) {}
             place = true;
         }
-        if (canHold && keysPressed[keyMap[6]]) {
+        if (canHold && keysPressed[6]) {
             var tempVal = cp.get();
             if (!validObject(hold)) {
                 next = true;
@@ -1857,10 +1962,10 @@ draw = function() {
                 cp = hold.get();
             }
             hold = tempVal;
-            
+
             canHold = false;
         }
-        
+
         if (timer>=dropTime) {
             if (cp.move(0,-1,board)) {
                timer = 0;
@@ -1869,15 +1974,15 @@ draw = function() {
         }
         if (!cp.testPos(0,-1,cp.state,board)) {lockDelayTimer+=1;}
         if (lockDelayTimer >= lockDelay) {place = true;}
-        
+
         if (place) {
             board = cp.place(board);
-            board  = cp.lineClear(board);
+            board = cp.lineClear(board);
             canHold = true;
             place = false;
             next = true;
         }
-        
+
         if (next) {
             if (bag.length < 1) {
                 bag = randIntNoRep(blocks.length);
@@ -1887,69 +1992,108 @@ draw = function() {
             //timer = dropTime;
             lockDelayTimer = 0;
             next = false;
-            
+
             if (!cp.testPos(0,0,cp.state,board)) {
                 end = true;
             }
         }
-        
+
         ghost = cp.get();
         ghost.x = cp.x;
         ghost.y = cp.y;
         ghost.state = cp.state;
         ghost.colorIndex = 1;
         while (ghost.move(0,-1,board)) {}
-        
-        stroke(48,48,48,64);
-        drawMatrix(width/4,3*width/4,-above*height/bHeight,height,blockColors,cp.place(ghost.place(board)));
-        
-        fill(64);
-        rect(width-5,width-5,80,80);
-        
-        
-        
-        
-        fill(32);
-        rect(0,0,80,80);
-        if (validObject(hold)) {
-            var hCenterX = 40;
-            var hCenterY = 40;
-            var hBlock = copyDimensionalArray(hold.getBlock());
-            var hWidth = 14*hBlock[0].length;
-            var hHeight = 14*hBlock.length;
-            noStroke();
-            drawMatrix(hCenterX-hWidth/2,hCenterX+hWidth/2,hCenterY-hHeight/2,hCenterY+hHeight/2,[color(255,255,255,0),blockColors[hold.colorIndex]],hBlock);
-        }
-        
-        for (var i = 0; i < queue.length; i++) {
-            stroke(16);
-            if (i === 0) {
-                fill(64);
-            } else {
-                fill(16);
-            }
-            rect(width-80,80*i,80,80);
-            
-            var qCenterX = width-40;
-            var qCenterY = 80*i+40;
-            var qBlock = copyDimensionalArray(blocks[queue[i]].blockData[0]);
-            var qWidth = 14*qBlock[0].length;
-            var qHeight = 14*qBlock.length;
-            noStroke();
-            drawMatrix(qCenterX-qWidth/2,qCenterX+qWidth/2,qCenterY-qHeight/2,qCenterY+qHeight/2,[color(255,0,255,0),blockColors[blocks[queue[i]].colorIndex]],qBlock);
-        }
-        
-        
-        if (end) {
-            background(8, 8, 8, 128);
-            /*
-            fill(255);
-            var msg = "You Lost.";
-            textSize(Math.floor(canvasSize/20))
-            text(msg, (width-textWidth(msg))/2, (height-textAscent())/2);
-            */
-        }
-        
-        
+
     }
+
+    //draw board
+    var drawboard = ghost ? ghost.place(board) : board;
+
+    stroke(48,48,48,64);
+    drawMatrix(width/4,3*width/4,-above*height/bHeight,height,blockColors,cp.place(drawboard));
+
+    //draw hold
+    fill(64);
+    rect(width-5,width-5,80,80);
+
+    fill(32);
+    rect(0,0,80,80);
+    if (validObject(hold)) {
+        var hCenterX = 40;
+        var hCenterY = 40;
+        var hBlock = copyDimensionalArray(hold.getBlock());
+        var hWidth = 14*hBlock[0].length;
+        var hHeight = 14*hBlock.length;
+        noStroke();
+        drawMatrix(hCenterX-hWidth/2,hCenterX+hWidth/2,hCenterY-hHeight/2,hCenterY+hHeight/2,[color(255,255,255,0),blockColors[hold.colorIndex]],hBlock);
+    }
+
+    //draw queue
+    for (var i = 0; i < queue.length; i++) {
+        stroke(16);
+        if (i === 0) {
+            fill(64);
+        } else {
+            fill(16);
+        }
+        rect(width-80,80*i,80,80);
+
+        var qCenterX = width-40;
+        var qCenterY = 80*i+40;
+        var qBlock = copyDimensionalArray(blocks[queue[i]].blockData[0]);
+        var qWidth = 14*qBlock[0].length;
+        var qHeight = 14*qBlock.length;
+        noStroke();
+        drawMatrix(qCenterX-qWidth/2,qCenterX+qWidth/2,qCenterY-qHeight/2,qCenterY+qHeight/2,[color(255,0,255,0),blockColors[blocks[queue[i]].colorIndex]],qBlock);
+    }
+
+    if (stopped) {
+        var drawIcon;
+        var iconRadius;
+
+        if (end) {
+            drawIcon = drawArrowRotateLeft;
+            iconRadius = 320;
+        } else if (paused) {
+            drawIcon = drawPlay;
+            iconRadius = 256;
+        }
+
+        var iconColor;
+        var iconScale;
+        if (hover || keysTimer[8] > 0) {
+            iconColor = color(255, 255, 255, 192);
+            iconScale = 0.8;
+            cursor(HAND);
+        } else {
+            iconColor = color(255, 255, 255, 128);
+            iconScale = 0.7;
+            cursor(ARROW);
+        }
+        hover = inCircle(mouseX, mouseY, width/2, height/2, iconRadius*iconScale);
+
+        background(8, 8, 8, 128);
+        noStroke();
+        fill(iconColor);
+        //circle(width/2, height/2, 2*iconRadius*iconScale);
+        drawIcon(width/2, height/2, iconScale);
+
+
+        if ((hover && mouseTapped) || keysReleased[8]) {
+            if (end) {
+                end = false;
+                board = new2DArray(bHeight+above,bWidth,0);
+                bag = randIntNoRep(blocks.length);
+                cp = blocks[bag.shift()].get();
+                queue = bag.splice(0,queueLength);
+                hold = null;
+                place = false;
+                next = false;
+            }
+            paused = false;
+        }
+    }
+
+    mouseTapped = false;
 };
