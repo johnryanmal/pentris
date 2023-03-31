@@ -248,7 +248,6 @@ var canvasPadding = 40;
 var canvasSize;
 
 function setup() {
-    frameRate(60);
     canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
     var canvas = createCanvas(canvasSize, canvasSize);
     canvas.parent('sketch-wrapper');
@@ -1991,7 +1990,7 @@ draw = function() {
         }
         if (keysDown[4] && keysTimer[4]>=softDropTime) {
             if (cp.move(0,-1,board)) {
-                keysTimer[40] = 0;
+                keysTimer[4] = 0;
                 lockDelayTimer = 0;
             }
         }
