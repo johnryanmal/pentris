@@ -248,12 +248,12 @@ var canvasPadding = 40;
 var canvasSize;
 
 function setup() {
-    canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
+    canvasSize = Math.max(400, Math.min(window.innerWidth, window.innerHeight) - canvasPadding);
     var canvas = createCanvas(canvasSize, canvasSize);
     canvas.parent('sketch-wrapper');
 
     window.addEventListener('resize', function() {
-        canvasSize = Math.min(window.innerWidth, window.innerHeight) - canvasPadding;
+        canvasSize = Math.max(400, Math.min(window.innerWidth, window.innerHeight) - canvasPadding);
         resizeCanvas(canvasSize, canvasSize);
     }, true);
 
@@ -1934,6 +1934,7 @@ var drawArrowRotateLeft = function(x, y, s) {
 var hover = false;
 
 draw = function() {
+    background(8);
 
     for (var i = 0; i < keyMap.length; i++) {
         var key = keyMap[i];
@@ -1953,7 +1954,6 @@ draw = function() {
 
     var stopped = begin || paused || end;
     if (!stopped) {
-        background(8);
         timer += 1;
 
         if (keysReleased[7]) {
@@ -2139,7 +2139,9 @@ draw = function() {
                 iconScale = 0.7;
             }
 
-            hover = inCircle(mouseX, mouseY, width/2, height/2, iconRadius*iconScale);
+            var iconBase = canvasSize / 756;
+            var iconSize = iconBase * iconScale;
+            hover = inCircle(mouseX, mouseY, width/2, height/2, iconRadius*iconSize);
             if (hover) {
                 cursor(HAND);
             } else {
@@ -2148,8 +2150,8 @@ draw = function() {
 
             noStroke();
             fill(iconColor);
-            //circle(width/2, height/2, 2*iconRadius*iconScale);
-            drawIcon(width/2, height/2, iconScale);
+            //circle(width/2, height/2, 2*iconRadius*iconSize);
+            drawIcon(width/2, height/2, iconSize);
 
             if ((hover && mouseTapped) || keysReleased[8] || (paused && keysReleased[7])) {
                 if (end) {
