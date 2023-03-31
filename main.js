@@ -59,7 +59,7 @@ var new2DArray = function(yMax,xMax,fillVal) {
     var insideArray = new1DArray(xMax,fillVal);
 
     for (var i = 0; i < yMax; i++) {
-        newArray[i] = insideArray;
+        newArray[i] = insideArray.slice();
     }
 
     return newArray;
@@ -240,7 +240,7 @@ Polymino.prototype.lineClear = function(board) {
             }
         }
     }
-    return(newBoard);
+    return newBoard;
 };
 
 var blockColors;
