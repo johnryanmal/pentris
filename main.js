@@ -4,14 +4,25 @@
  * 1 - Right (Right Arrow)
  * 2 - Rotate Counter Clockwise (A)
  * 3 - Rotate Clockwise (D)
- * 4 - Soft Drop (Down Arrow)
- * 5 - Hard Drop (Space)
- * 6 - Hold (Up Arrow)
- * 7 - Pause (P)
- * 8 - Continue (Enter)
- * 9 - Flip (W)
+ * 4 - Flip (W)
+ * 5 - Soft Drop (Down Arrow)
+ * 6 - Hard Drop (Space)
+ * 7 - Hold (Up Arrow)
+ * 8 - Pause (P)
+ * 9 - Select (Enter)
  */
-var keyMap = [37,39,65,68,40,32,38,80,13,87];
+var SHIFT_L = 0;
+var SHIFT_R = 1;
+var ROTATE_L = 2;
+var ROTATE_R = 3;
+var FLIP = 4;
+var LOWER = 5;
+var DROP = 6;
+var HOLD = 7;
+var PAUSE = 8;
+var SELECT = 9;
+
+var keyMap = [37,39,65,68,87,40,32,38,80,13];
 
 
 window.addEventListener('keydown', function(event) {
@@ -1954,7 +1965,7 @@ draw = function() {
         keysPressed[i] = !keyDownPrev&&keyDown;
         keysReleased[i] = keyDownPrev&&!keyDown;
         if (keys[key]) {
-            keysTimer[i] +=1;
+            keysTimer[i] += 1;
         } else {
             keysTimer[i] = 0;
         }
@@ -1965,12 +1976,12 @@ draw = function() {
     if (!stopped) {
         timer += 1;
 
-        if (keysReleased[7]) {
+        if (keysReleased[PAUSE]) {
             paused = true;
         }
 
-        if (keysPressed[0]||(keysTimer[0]>DAS&&(keysTimer[0]-DAS)%ARR===0)) {
-            keysTimer[1] = 0;
+        if (keysPressed[SHIFT_L]||(keysTimer[SHIFT_L]>DAS&&(keysTimer[SHIFT_L]-DAS)%ARR===0)) {
+            keysTimer[SHIFT_L] = 0;
             if (cp.move(-1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
@@ -1978,8 +1989,8 @@ draw = function() {
                 }
             }
         }
-        if (keysPressed[1]||(keysTimer[1]>DAS&&(keysTimer[1]-DAS)%ARR===0)) {
-            keysTimer[0] = 0;
+        if (keysPressed[SHIFT_R]||(keysTimer[SHIFT_R]>DAS&&(keysTimer[SHIFT_R]-DAS)%ARR===0)) {
+            keysTimer[SHIFT_R] = 0;
             if (cp.move(1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
@@ -1987,32 +1998,32 @@ draw = function() {
                 }
             }
         }
-        if (keysPressed[2]) {
+        if (keysPressed[ROTATE_L]) {
             if (cp.rotate((cp.state+3)%4,board)) {
                 lockDelayTimer = 0;
             }
         }
-        if (keysPressed[3]) {
+        if (keysPressed[ROTATE_R]) {
             if(cp.rotate((cp.state+1)%4,board)) {
                 lockDelayTimer = 0;
             }
         }
-        if (keysPressed[9]) {
+        if (keysPressed[FLIP]) {
             if(cp.flip(board)) {
                 lockDelayTimer = 0;
             }
         }
-        if (keysDown[4] && keysTimer[4]>=softDropTime) {
+        if (keysDown[LOWER] && keysTimer[LOWER]>=softDropTime) {
             if (cp.move(0,-1,board)) {
-                keysTimer[4] = 0;
+                keysTimer[LOWER] = 0;
                 lockDelayTimer = 0;
             }
         }
-        if (keysPressed[5]) {
+        if (keysPressed[DROP]) {
             while (cp.move(0,-1,board)) {}
             place = true;
         }
-        if (canHold && keysPressed[6]) {
+        if (canHold && keysPressed[HOLD]) {
             var tempVal = cp.get();
             if (!validObject(hold)) {
                 next = true;
@@ -2113,7 +2124,7 @@ draw = function() {
         var PAUSE = 2;
         var ARROW_ROTATE_LEFT = 3;
 
-        var iconHighlight = hover || keysDown[8] || (paused && keysDown[7]);
+        var iconHighlight = hover || keysDown[SELECT] || (paused && keysDown[PAUSE]);
 
         var icon;
         if (begin) {
@@ -2167,7 +2178,7 @@ draw = function() {
             //circle(width/2, height/2, 2*iconRadius*iconSize);
             drawIcon(width/2, height/2, iconSize);
 
-            if ((hover && mouseTapped) || keysReleased[8] || (paused && keysReleased[7])) {
+            if ((hover && mouseTapped) || keysReleased[SELECT] || (paused && keysReleased[PAUSE])) {
                 if (end) {
                     end = false;
                     board = new2DArray(bHeight+above,bWidth,0);
