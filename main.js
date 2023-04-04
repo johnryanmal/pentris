@@ -9,8 +9,9 @@
  * 6 - Hold (Up Arrow)
  * 7 - Pause (P)
  * 8 - Continue (Enter)
+ * 9 - Flip (W)
  */
-var keyMap = [37,39,65,68,40,32,38,80,13];
+var keyMap = [37,39,65,68,40,32,38,80,13,87];
 
 
 window.addEventListener('keydown', function(event) {
@@ -188,6 +189,14 @@ Polymino.prototype.rotate = function(toState,board) {
             this.state = toState;
             return true;
         }
+    }
+    return false;
+};
+Polymino.prototype.flip = function(board) {
+    var toState = (this.state + 2) % 4;
+    if (this.testPos(0,0,toState,board)) {
+        this.state = toState;
+        return true;
     }
     return false;
 };
@@ -1985,6 +1994,11 @@ draw = function() {
         }
         if (keysPressed[3]) {
             if(cp.rotate((cp.state+1)%4,board)) {
+                lockDelayTimer = 0;
+            }
+        }
+        if (keysPressed[9]) {
+            if(cp.flip(board)) {
                 lockDelayTimer = 0;
             }
         }
