@@ -1981,7 +1981,7 @@ draw = function() {
         }
 
         if (keysPressed[SHIFT_L]||(keysTimer[SHIFT_L]>DAS&&(keysTimer[SHIFT_L]-DAS)%ARR===0)) {
-            keysTimer[SHIFT_L] = 0;
+            keysTimer[SHIFT_R] = 0;
             if (cp.move(-1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
@@ -1990,7 +1990,7 @@ draw = function() {
             }
         }
         if (keysPressed[SHIFT_R]||(keysTimer[SHIFT_R]>DAS&&(keysTimer[SHIFT_R]-DAS)%ARR===0)) {
-            keysTimer[SHIFT_R] = 0;
+            keysTimer[SHIFT_L] = 0;
             if (cp.move(1,0,board)) {
                 lockDelayTimer = 0;
                 if (!cp.testPos(0,-1,cp.state,board)) {
