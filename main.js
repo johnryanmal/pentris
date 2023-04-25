@@ -2121,7 +2121,7 @@ draw = function() {
         background(8, 8, 8, 128);
 
         var PLAY = 1;
-        var PAUSE = 2;
+        var PAUSED = 2;
         var ARROW_ROTATE_LEFT = 3;
 
         var iconHighlight = hover || keysDown[SELECT] || (paused && keysDown[PAUSE]);
@@ -2132,7 +2132,7 @@ draw = function() {
         } else if (end) {
             icon = ARROW_ROTATE_LEFT;
         } else if (paused) {
-            icon = PAUSE;
+            icon = PAUSED;
         }
 
         if (icon) {
@@ -2144,7 +2144,7 @@ draw = function() {
                     drawIcon = drawPlay;
                     iconRadius = 256;
                     break;
-                case PAUSE:
+                case PAUSED:
                     drawIcon = drawPause;
                     iconRadius = 240;
                     break;
